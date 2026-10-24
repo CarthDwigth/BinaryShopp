@@ -53,9 +53,9 @@
     </marquee>
 
     <div class="container">
-        <!-- Espacio de Publicidad -->
+        <!-- Publicidad -->
         <div class="banner-publicidad">
-            📢 <strong>PUBLICIDAD:</strong> PARA PUBLICIDAD ESCRIBA AL +58412-6767676
+            <strong>PUBLICIDAD:</strong> PARA PUBLICIDAD ESCRIBA AL +58412-6767676
         </div>
 
         <h2>Catálogo de Productos</h2>
@@ -94,6 +94,7 @@
                             <p>$${prod.precio}</p>
                             <p style="font-size:0.8rem; color:#666;">Stock: ${prod.stock}</p>
                             <button onclick="comprar(${prod.id})">Añadir al Carrito</button>
+                            <button onclick="compraInmediata(${prod.id})" style="background: linear-gradient(to bottom, #f39c12, #d68910); margin-top: 5px;">Compra Inmediata</button>
                         </div>
                     `;
                 }
@@ -120,6 +121,25 @@
                 renderizarCatalogoEstudiante();
                 actualizarVistaCarrito();
                 alert('Producto añadido al carrito.');
+            }
+        }
+
+        function compraInmediata(id) {
+            var prodEncontrado = null;
+            for (var i = 0; i < productos.length; i++) {
+                if (productos[i].id === id) {
+                    prodEncontrado = productos[i];
+                    break;
+                }
+            }
+
+            if (prodEncontrado && prodEncontrado.stock > 0) {
+                prodEncontrado.stock--;
+                carrito = [prodEncontrado];
+                sincronizar();
+                location.href = 'checkout.html';
+            } else {
+                alert('Lo siento, no hay stock disponible.');
             }
         }
 
