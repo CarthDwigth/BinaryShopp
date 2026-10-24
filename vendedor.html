@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Vendedor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">Panel Vendedor</div>
+        <nav>
+            <a href="catalogo.html">Ver Catálogo</a>
+            <a href="index.html" onclick="localStorage.removeItem('usuarioActual')">Salir</a>
+        </nav>
+    </header>
+    <div class="container">
+        <h2>Publicar Producto</h2>
+        <form id="form-prod">
+            <label>Nombre:</label>
+            <input type="text" id="nombre" required>
+            <label>Precio ($):</label>
+            <input type="number" id="precio" step="0.01" required>
+            <label>Stock:</label>
+            <input type="number" id="stock" min="1" required>
+            <label>URL Imagen:</label>
+            <input type="text" id="imagen" value="https://via.placeholder.com/200x140?text=Articulo" required>
+            <button type="submit">Publicar</button>
+        </form>
+
+        <h2 style="margin-top: 30px;">Órdenes de Compra Recibidas</h2>
+        <div id="lista-ordenes"></div>
+
+        <h2 style="margin-top: 30px;">Tus Productos Publicados</h2>
+        <div id="mis-productos"></div>
+    </div>
+    <script src="app.js"></script>
+    <script>
+        if (!usuarioActual || usuarioActual.rol !== 'vendedor') {
+            alert('Acceso restringido');
+            location.href = 'index.html';
+        }
+
+        function cargarPanelVendedor() {
+            const divProds = document.getElementById('mis-productos');
+            divProds.innerHTML = '';
+            productos.filter(p => p.vendedor === usuarioActual.user).forEach(p => {
+                divProds.innerHTML += `<div class="card" style="margin-bottom:10px; text-align:left; padding:10px;">${p.nombre} - $${p.precio} (Stock: ${p.stock}) <button class="btn-danger" onclick="eliminar(${p.id})" style="float:right; width:auto;">Eliminar</button></div>`;
+            });
+
+            const divOrdenes = document.getElementById('lista-ordenes');
+            divOrdenes.innerHTML = '';
+            if (ordenes.length === 0) {
+                divOrdenes.innerHTML = '<p>No hay órdenes registradas.</p>';
+                return;
+            }
+
+            ordenes.forEach((o, index) => {
+                let itemsStr = o.items.map(i => `${i.name || i.nombre} ($${i.precio})`).join(', ');
+                divOrdenes.innerHTML += `
+                    <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 3px; background: #fafafa;">
+                        <p><strong>Orden #${o.id}</strong> - Comprador: ${o.comprador}</p>
+                        <p><strong>Envío a:</strong> ${o.nombre} (${o.direccion})</p>
+                        <p><strong>Productos:</strong> ${itemsStr}</p>
+                        <button class="btn-success" onclick="marcarEnviado(${index})" style="width:auto; margin-top:5px; padding:4px 8px;">Realizar Envío</button>
+                    </div>
+                `;
+            });
+        }
+        cargarPanelVendedor();
+
+        document.getElementById('form-prod').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nuevo = {
+                id: Date.now(),
+                nombre: document.getElementById('nombre').value,
+                precio: parseFloat(document.getElementById('precio').value),
+                stock: parseInt(document.getElementById('stock').value),
+                imagen: document.getElementById('imagen').value,
+                vendedor: usuarioActual.user
+            };
+            productos.push(nuevo);
+            sincronizar();
+            cargarPanelVendedor();
+            document.getElementById('form-prod').reset();
+            alert('Publicado con éxito');
+        });
+
+        function eliminar(id) {
+            productos = productos.filter(p => p.id !== id);
+            sincronizar();
+            cargarPanelVendedor();
+        }
+
+        function marcarEnviado(index) {
+            alert('¡Orden marcada como enviada con éxito!');
+            ordenes.splice(index, 1);
+            sincronizar();
+            cargarPanelVendedor();
+        }
+    </script>
+</body>
+</html>

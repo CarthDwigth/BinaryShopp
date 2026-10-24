@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>BinaryShop - Pago</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">BinaryShop 🛒</div>
+        <nav><a href="catalogo.html">Volver al Catálogo</a></nav>
+    </header>
+
+    <div class="container" style="max-width: 500px;">
+        <h2>Procesamiento de Pago y Envío</h2>
+        <form id="form-checkout">
+            <label>Nombre Completo:</label>
+            <input type="text" id="nombre" required placeholder="Ej. Juan Pérez">
+            
+            <label>Dirección de Envío:</label>
+            <input type="text" id="direccion" required placeholder="Ej. Av. Urdaneta, Caracas">
+            
+            <label>Datos Bancarios (Tarjeta / Pago Móvil):</label>
+            <input type="text" id="banco" required placeholder="Número de cuenta o TDD">
+            
+            <button type="submit" class="btn-success">Confirmar y Enviar al Vendedor</button>
+        </form>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        document.getElementById('form-checkout').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const nuevaOrden = {
+                id: Date.now(),
+                comprador: usuarioActual ? usuarioActual.user : 'Invitado',
+                nombre: document.getElementById('nombre').value,
+                direccion: document.getElementById('direccion').value,
+                items: [...carrito],
+                estado: 'Pendiente de Envio'
+            };
+
+            ordenes.push(nuevaOrden);
+            carrito = []; // Vaciamos el carrito
+            sincronizar();
+
+            alert('¡Compra realizada con éxito! La orden ha sido enviada al vendedor.');
+            location.href = 'catalogo.html';
+        });
+    </script>
+</body>
+</html>

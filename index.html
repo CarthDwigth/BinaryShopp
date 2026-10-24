@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>BinaryShop - Acceso</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">BinaryShop</div>
+        <nav>
+            <a href="catalogo.html">Ver Catálogo</a>
+        </nav>
+    </header>
+
+    <div style="text-align: center; margin-top: 2rem;">
+        <h1>BinaryShop Tienda Online</h1>
+        <p>Inicia sesion o create una cuenta</p>
+    </div>
+
+    <div class="auth-split-wrapper">
+        
+        <div class="auth-column">
+            <h3>Login</h3>
+            <form id="form-login">
+                <label>Usuario:</label>
+                <input type="text" id="login-user" required>
+                <label>Contraseña:</label>
+                <input type="password" id="login-pass" required>
+                <button type="submit">Entrar</button>
+            </form>
+        </div>
+
+        <div class="auth-column">
+            <h3>Registro</h3>
+            <form id="form-registro">
+                <label>Nuevo Usuario:</label>
+                <input type="text" id="reg-user" required>
+                <label>Contraseña:</label>
+                <input type="password" id="reg-pass" required>
+                <label>Rol:</label>
+                <select id="reg-rol">
+                    <option value="comprador">Comprador</option>
+                    <option value="vendedor">Vendedor</option>
+                </select>
+                <button type="submit" class="btn-success">Registrarse</button>
+            </form>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        document.getElementById('form-login').addEventListener('submit', (e) => {
+            e.preventDefault();
+            var u = document.getElementById('login-user').value;
+            var p = document.getElementById('login-pass').value;
+
+            var encontrado = null;
+            for (var i = 0; i < usuarios.length; i++) {
+                if (usuarios[i].user === u && usuarios[i].pass === p) {
+                    encontrado = usuarios[i];
+                    break;
+                }
+            }
+
+            if (!encontrado) {
+                alert('Datos incorrectos');
+                return;
+            }
+            usuarioActual = encontrado;
+            sincronizar();
+            irAlRol();
+        });
+
+        document.getElementById('form-registro').addEventListener('submit', (e) => {
+            e.preventDefault();
+            var u = document.getElementById('reg-user').value;
+            var p = document.getElementById('reg-pass').value;
+            var r = document.getElementById('reg-rol').value;
+
+            var nuevo = { user: u, pass: p, rol: r };
+            usuarios.push(nuevo);
+            usuarioActual = nuevo;
+            sincronizar();
+
+            alert('Cuenta creada');
+            irAlRol();
+        });
+
+        function irAlRol() {
+            if (usuarioActual.rol === 'comprador') location.href = 'catalogo.html';
+            else if (usuarioActual.rol === 'vendedor') location.href = 'vendedor.html';
+            else if (usuarioActual.rol === 'administrador') location.href = 'admin.html';
+        }
+    </script>
+</body>
+</html>

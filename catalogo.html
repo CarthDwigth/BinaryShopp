@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>BinaryShop - Catálogo</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .carrito-wrapper { position: relative; cursor: pointer; }
+        .carrito-dropdown {
+            display: none; position: absolute; right: 0; top: 35px; background: #fff; color: #333; width: 280px; padding: 1rem;
+            border-radius: 4px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border: 1px solid #ccc; z-index: 100;
+        }
+        .item-carrito { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.9rem; }
+        .btn-eliminar-item { background: #dc3545; color: white; border: none; padding: 2px 6px; cursor: pointer; border-radius: 3px; }
+        .total-carrito { font-weight: bold; margin-top: 10px; border-top: 1px solid #ccc; padding-top: 5px; text-align: right; }
+        
+        /* Publicidad */
+        .banner-publicidad {
+            background-color: #fff3cd;
+            border: 1px dashed #ffeeba;
+            color: #856404;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div><strong>BinaryShop</strong></div>
+        <nav>
+            <a href="catalogo.html">Catálogo</a>
+            <a href="#" id="link-panel" style="display:none;">Mi Panel</a>
+            <a href="index.html" onclick="localStorage.removeItem('usuarioActual')">Cerrar Sesión</a>
+        </nav>
+        
+        <div class="carrito-wrapper" onclick="toggleCarrito()">
+            🛒 Carrito (<span id="count">0</span>)
+            <div id="dropdown" class="carrito-dropdown" onclick="event.stopPropagation()">
+                <h4>Tu Carrito</h4>
+                <div id="lista-items">El carrito está vacío</div>
+                <div id="contenedor-total"></div>
+                <button id="btn-comprar" onclick="procesarCompra()" style="display:none; background: #28a745; margin-top: 10px; padding: 5px; width: 100%; color: white; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;">Procesar Compra</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barrita -->
+    <marquee style="background: #333; color: #ffcc00; padding: 6px; font-size: 0.9rem; font-family: Arial;">
+        ¡Bienvenidos a inversiones BinaryShop 2007! Envios gratis en Caracas, Ubicados en Quinta Crespo
+    </marquee>
+
+    <div class="container">
+        <!-- Espacio de Publicidad -->
+        <div class="banner-publicidad">
+            📢 <strong>PUBLICIDAD:</strong> PARA PUBLICIDAD ESCRIBA AL +58412-6767676
+        </div>
+
+        <h2>Catálogo de Productos</h2>
+        <div id="grid" class="grid"></div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        if (usuarioActual) {
+            var p = document.getElementById('link-panel');
+            if (usuarioActual.rol === 'vendedor') { p.style.display = 'inline'; p.href = 'vendedor.html'; p.innerText = 'Panel Vendedor'; }
+            if (usuarioActual.rol === 'administrador') { p.style.display = 'inline'; p.href = 'admin.html'; p.innerText = 'Panel Admin'; }
+        }
+
+        actualizarVistaCarrito();
+        renderizarCatalogoEstudiante();
+
+        function renderizarCatalogoEstudiante() {
+            var grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            
+            var hayProductos = false;
+            for (var i = 0; i < productos.length; i++) {
+                var prod = productos[i];
+                
+                if (usuarioActual && usuarioActual.rol === 'vendedor' && prod.vendedor === usuarioActual.user) {
+                    continue;
+                }
+                
+                if (prod.stock > 0) {
+                    hayProductos = true;
+                    grid.innerHTML += `
+                        <div class="card">
+                            <img src="${prod.imagen}" alt="producto">
+                            <h3>${prod.nombre}</h3>
+                            <p>$${prod.precio}</p>
+                            <p style="font-size:0.8rem; color:#666;">Stock: ${prod.stock}</p>
+                            <button onclick="comprar(${prod.id})">Añadir al Carrito</button>
+                        </div>
+                    `;
+                }
+            }
+
+            if (!hayProductos) {
+                grid.innerHTML = '<p>No hay productos disponibles para comprar en este momento.</p>';
+            }
+        }
+
+        function comprar(id) {
+            var prodEncontrado = null;
+            for (var i = 0; i < productos.length; i++) {
+                if (productos[i].id === id) {
+                    prodEncontrado = productos[i];
+                    break;
+                }
+            }
+
+            if (prodEncontrado && prodEncontrado.stock > 0) {
+                prodEncontrado.stock--;
+                carrito.push(prodEncontrado);
+                sincronizar();
+                renderizarCatalogoEstudiante();
+                actualizarVistaCarrito();
+                alert('Producto añadido al carrito.');
+            }
+        }
+
+        function toggleCarrito() {
+            var drop = document.getElementById('dropdown');
+            if (drop.style.display === 'block') {
+                drop.style.display = 'none';
+            } else {
+                drop.style.display = 'block';
+            }
+        }
+
+        function actualizarVistaCarrito() {
+            document.getElementById('count').innerText = carrito.length;
+            var lista = document.getElementById('lista-items');
+            var contTotal = document.getElementById('contenedor-total');
+            var btnComprar = document.getElementById('btn-comprar');
+
+            lista.innerHTML = '';
+            if (carrito.length === 0) {
+                lista.innerHTML = '<p style="color: #777; text-align: center;">El carrito está vacío</p>';
+                contTotal.innerHTML = '';
+                btnComprar.style.display = 'none';
+                return;
+            }
+
+            var total = 0;
+            for (var i = 0; i < carrito.length; i++) {
+                total = total + carrito[i].precio;
+                lista.innerHTML += `
+                    <div class="item-carrito">
+                        <span>${carrito[i].nombre} - $${carrito[i].precio}</span>
+                        <button class="btn-eliminar-item" onclick="eliminarDelCarrito(${i})">X</button>
+                    </div>
+                `;
+            }
+
+            contTotal.innerHTML = `<div class="total-carrito">Total: $${total}</div>`;
+            btnComprar.style.display = 'block';
+        }
+
+        function eliminarDelCarrito(index) {
+            var devuelto = carrito[index];
+            for (var i = 0; i < productos.length; i++) {
+                if (productos[i].id === devuelto.id) {
+                    productos[i].stock++;
+                    break;
+                }
+            }
+
+            carrito.splice(index, 1);
+            sincronizar();
+            renderizarCatalogoEstudiante();
+            actualizarVistaCarrito();
+        }
+
+        function procesarCompra() {
+            if (carrito.length === 0) return;
+            location.href = 'checkout.html';
+        }
+    </script>
+</body>
+</html>
